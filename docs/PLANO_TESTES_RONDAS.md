@@ -1,0 +1,56 @@
+# Plano de testes — RONDAS
+
+Data: 2026-10-16  
+Branch: `fix/agenda-persistence-security-review`
+
+Este documento descreve testes manuais e negativos pendentes. Não afirma que os testes foram executados. Não requer alteração no banco de produção.
+
+## 1. Busca e confirmação do chamado
+
+- [ ] Buscar um chamado existente e elegível: os dados correspondentes aparecem no formulário.
+- [ ] Buscar um chamado inexistente: a interface informa que não foi encontrado e não permite enviar usando a confirmação anterior.
+- [ ] Carregar um chamado válido e, em seguida, pesquisar um número inexistente: o envio deve ser bloqueado.
+- [ ] Carregar um chamado válido e, em seguida, provocar erro de consulta: o envio deve ser bloqueado.
+- [ ] Pesquisar um chamado já concluído: o envio deve ser bloqueado.
+- [ ] Alterar manualmente o número do chamado no formulário após a busca: o envio deve ser bloqueado.
+- [ ] Testar normalização de espaços e letras maiúsculas/minúsculas sem transformar números diferentes em equivalentes.
+
+## 2. Persistência da agenda (somente ambiente de teste)
+
+- [ ] Criar agendamento e confirmar que ele persiste após atualizar a página.
+- [ ] Editar agendamento e confirmar que os campos editados persistem após recarregar.
+- [ ] Confirmar que a operação de gravação não cria duplicidade para o mesmo `id_chamado`.
+- [ ] Excluir agendamento de teste e confirmar que a exclusão persiste após recarregar.
+- [ ] Registrar uma ronda válida e verificar se o status do chamado muda para `Concluída`.
+- [ ] Simular falha na gravação da ronda e verificar que a interface não informa sucesso indevidamente.
+- [ ] Verificar se a ronda não é inserida duas vezes em caso de clique repetido ou repetição da requisição.
+
+## 3. Autenticação e autorização
+
+Estes testes devem ser feitos apenas depois de existir um desenho de autenticação/RLS testável, em ambiente de teste.
+
+- [ ] Sem sessão, tentar ler `usuarios_sistema`, `rondas` e `agenda_os` diretamente pela API: a operação deve ser negada conforme a política planejada.
+- [ ] Como técnico, tentar listar usuários e alterar dados administrativos: deve ser negado.
+- [ ] Como técnico, enviar uma ronda para chamado inexistente ou concluído por requisição direta: deve ser negado pelo servidor.
+- [ ] Como administrador, verificar apenas as operações administrativas explicitamente autorizadas.
+- [ ] Confirmar que nenhuma senha é retornada por consultas de usuários ou gravada em logs.
+- [ ] Confirmar que nenhuma chave `service_role` está no bundle do navegador ou em variável `VITE_*`.
+
+## 4. Build e validações automatizadas
+
+O `package.json` atualmente define os scripts `build` e `typecheck`, mas não define um script de testes automatizados. Portanto:
+
+- [ ] Executar `npm ci`.
+- [ ] Executar `npm run typecheck`.
+- [ ] Executar `npm run build`.
+- [ ] Planejar testes automatizados para busca/validação e submissão antes de considerar a mudança pronta.
+
+## Critérios para considerar pronto
+
+Não aprovar para produção enquanto houver qualquer falha nos testes de busca, persistência ou autorização. A aprovação de build, isoladamente, não demonstra segurança nem funcionamento ponta a ponta.
+
+## Restrições de segurança
+
+- Não executar migrações nem comandos SQL de alteração no banco de produção durante estes testes.
+- Não alterar a branch `main), não fazer merge e não publicar produção sem autorização explícita.
+- Usar dados fictícios ou cópia de teste; não usar chamados reais para testes destrutivos.
