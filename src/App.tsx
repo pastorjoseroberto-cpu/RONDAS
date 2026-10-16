@@ -245,6 +245,18 @@ export default function AppMaster() {
     })));
   }
 
+  const handleLogout = () => {
+    setUsuarioLogado(null);
+    setListaRondas([]);
+    setListaUsuarios([]);
+    setListaAgendamentos([]);
+    setDetalheItem(null);
+    setItemParaExcluirStep1(null);
+    setItemParaExcluirStep2(null);
+    setBusca('');
+    setBuscaAgenda('');
+  };
+
   const abrirAtalhoDiretoField = () => {
     const urlAtual = window.location.origin + window.location.pathname + '?modo=field';
     window.open(urlAtual, '_blank');
@@ -692,7 +704,7 @@ export default function AppMaster() {
             <button onClick={() => setVisaoGeral('gerente')} className={`px-3 py-2 rounded-lg text-xs font-bold transition shadow uppercase ${visaoGeral === 'gerente' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:text-white'}`}>📊 Gestor</button>
             <button onClick={abrirAtalhoDiretoField} title="Abrir link direto para técnicos" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded-lg transition uppercase flex items-center gap-1 shadow">⚡ Link Field</button>
             {usuarioLogado && (
-              <button onClick={() => setUsuarioLogado(null)} className="bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition uppercase">Sair</button>
+              <button onClick={handleLogout} className="bg-slate-800 border border-slate-600 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition uppercase">Sair</button>
             )}
           </div>
         )}
