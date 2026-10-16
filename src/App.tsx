@@ -285,6 +285,8 @@ export default function AppMaster() {
       return;
     }
 
+    // Limpa a confirmação anterior antes de iniciar uma nova busca.
+    setChamadoCarregado(false);
     setAlertaAtraso(null);
 
     const { data: itemAgenda, error: erroAgenda } = await supabase.from('agenda_os').select('*').eq('id_chamado', termo).maybeSingle();
