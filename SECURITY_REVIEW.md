@@ -35,9 +35,9 @@ O esquema/código anteriormente inspecionado indica senhas armazenadas e compara
 
 ### Médio — agenda depende de migração ainda não aplicada
 
-O código nesta branch consulta e grava campos novos de `agenda_os`. A migração `supabase/migrations/20261016000100_agenda_os_fields.sql` adiciona os campos e índice único necessários. Ela está apenas no repositório e **não foi executada**.
+O código nesta branch consulta e grava campos novos de `agenda_os`. A migração `supabase/migrations/20261016000100_agenda_os_fields.sql` adiciona campos usados pela agenda. A auditoria confirmou que `agenda_os.id_chamado` já é chave primária única (`agenda_os_pkey`), portanto não é necessário criar outro índice. A migração está apenas no repositório e **não foi executada**.
 
-**Correção necessária:** revisar esquema e duplicidades, fazer backup/exportação verificável e testar a migração em ambiente de teste antes de qualquer aplicação. O índice único é necessário para o `upsert` por `id_chamado`.
+**Correção necessária:** revisar o esquema, fazer backup/exportação verificável e testar a migração em ambiente de teste antes de qualquer aplicação. A chave primária existente em `id_chamado` já atende ao conflito do `upsert`; a migração não deve criar índice redundante.
 
 ## Estado da alteração de agenda
 
