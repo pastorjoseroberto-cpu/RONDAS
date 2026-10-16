@@ -34,6 +34,8 @@ O efeito de inicialização em `src/App.tsx` chama `carregarRondas()`, `carregar
 
 A consulta de chamado e a inserção de ronda são feitas diretamente pelo cliente. Validação apenas no React pode ser contornada por chamadas diretas à API.
 
+**Mitigação parcial nesta branch:** o envio pelo formulário agora exige que a busca tenha marcado um chamado como carregado e compara o número pesquisado com o número do formulário após normalização. Após registrar a ronda, a interface permanece na visão de técnico, sem redirecionar automaticamente ao painel do gestor. Isso preserva o fluxo público pretendido, mas é somente uma barreira de interface, não uma garantia de segurança.
+
 **Correção necessária:** validar no lado confiável que o chamado existe, está elegível e não foi concluído; validar os campos aceitos; e aplicar autorização/rate limiting no endpoint de submissão. O formulário público pode continuar disponível, mas com permissões estritamente limitadas.
 
 ### Alto — senha em tabela personalizada
