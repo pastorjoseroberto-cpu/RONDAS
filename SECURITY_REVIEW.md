@@ -21,6 +21,13 @@ O levantamento fornecido indicou privilégios amplos para `anon` e `authenticate
 
 **Correção necessária:** desenhar políticas RLS mínimas por tabela e por função. Como o login atual é personalizado e não estabelece sessão Supabase Auth, não basta criar políticas que dependam de `auth.uid()` e presumir que o login existente será reconhecido. Primeiro migrar/definir a identidade e os papéis; depois testar cada operação com sessão anônima, técnico e administrador.
 
+
+### Crítico — dados administrativos consultados antes do login
+
+O efeito de inicialização em `src/App.tsx` chama `carregarRondas()`, `carregarUsuarios()` e `carregarAgendamentos()` ao montar a aplicação, antes de verificar uma sessão autenticada. Essas funções fazem consultas diretas ao Supabase. Com os privilégios amplos e RLS desabilitado informados na auditoria, ocultar as telas pela interface não protege os dados: as chamadas podem ocorrer mesmo sem login.
+
+**Correção necessária:** remover consultas administrativas do carregamento público; carregar dados restritos somente após autenticação real e autorização no servidor. Não confiar em estado React ou em ocultação visual como controle de acesso.
+
 ### Alto — validação do chamado e envio feitos pelo navegador
 
 A consulta de chamado e a inserção de ronda são feitas diretamente pelo cliente. Validação apenas no React pode ser contornada por chamadas diretas à API.
