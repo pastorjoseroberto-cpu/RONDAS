@@ -158,7 +158,7 @@ export default function AppMaster() {
   
   // CADASTRO DE UTILIZADORES SEM E-MAIL
   const [novoUser, setNovoUser] = useState({ nome_completo: '', username: '', senha_provisoria: 'Mud@r123', funcao: 'ADM' });
-  const [editandoId, setEditandoId] = useState<number | null>(null);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   const [novoAgendamento, setNovoAgendamento] = useState({
@@ -601,10 +601,15 @@ export default function AppMaster() {
 
     const { error } = await supabase.from('rondas').insert([dadosEnvio]);
     if (error) alert('Erro ao enviar: ' + error.message);
-    else { 
-      setListaAgendamentos(listaAgendamentos.map(a => 
-        a.chamado.toUpperCase() === form.numero_chamado.toUpperCase() ? { ...a, status: 'Concluída' } : a
-      ));
+    else {
+      const { error: erroStatusAgenda } = await supabase
+        .from('agenda_os')
+        .update({ status: 'Concluída' })
+        .eq('id_chamado', form.numero_chamado.trim().replace(/\s+/g, '').toUpperCase());
+      if (erroStatusAgenda) {
+        console.error('Ronda salva, mas não foi possível atualizar o status da agenda:', erroStatusAgenda.message);
+      }
+      await carregarAgendamentos();
 
       alert('✅ Ronda registada com sucesso!'); 
       setForm(camposIniciais); 
