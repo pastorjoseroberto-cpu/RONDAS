@@ -11,6 +11,10 @@ Esta revisão foi feita por inspeção do código e das informações de esquema
 
 ### Crítico — credencial administrativa exposta no frontend
 
+**Informação operacional confirmada pelo responsável:** o acesso administrativo atual é feito pela conta `master` com nome de usuário e senha, sem login por e-mail; a senha da conta atual já foi alterada. Isso não comprova que o caminho de bootstrap antigo foi removido nem que a nova senha foi migrada para outro mecanismo. A alteração de senha no app atual grava `usuarios_sistema.senha` diretamente, conforme `handleMudarSenha`, e não altera uma senha do Supabase Auth.
+
+**Risco adicional confirmado:** o código ainda contém uma condição especial para `master / Master123` e, quando não encontra a linha `master`, tenta recriá-la com essa credencial. Não remover a conta nem mudar o fluxo às pressas; planejar primeiro uma autenticação nova testada, depois retirar o bootstrap e o armazenamento em texto puro.
+
 O componente `src/App.tsx` exibe na interface a credencial inicial `master / Master123`; a lógica do login também foi previamente identificada como verificando essa combinação no próprio cliente. Código entregue ao navegador é público, portanto essa credencial não pode ser considerada secreta. Remover apenas o texto visual não basta se a verificação continuar no frontend.
 
 **Correção necessária:** migrar a autenticação administrativa para Supabase Auth ou backend confiável, com autorização validada no servidor. Planejar criação e teste de contas antes de desativar o login antigo. Não reutilizar a senha publicada.
