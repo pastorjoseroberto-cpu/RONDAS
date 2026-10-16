@@ -200,15 +200,16 @@ export default function AppMaster() {
 
   useEffect(() => {
     async function init() {
-      const { data: unid } = await supabase.from('unidades').select('*');
+      const { data: unid, error } = await supabase.from('unidades').select('*');
+      if (error) {
+        console.error('Erro ao carregar unidades:', error.message);
+        return;
+      }
       if (unid) {
         setTodasUnidadesDB(unid);
         const geos = Array.from(new Set(unid.map((item: any) => item.Geo || item.geo))).filter(Boolean);
         setGeosDisponiveis(geos as string[]);
       }
-      carregarRondas();
-      carregarUsuarios();
-      carregarAgendamentos();
     }
     init();
   }, []);
@@ -373,6 +374,7 @@ export default function AppMaster() {
           return;
         }
         setUsuarioLogado(novoMaster);
+        await Promise.all([carregarRondas(), carregarUsuarios(), carregarAgendamentos()]);
         return;
       }
     }
@@ -388,6 +390,7 @@ export default function AppMaster() {
       alert('Utilizador ou senha incorretos.');
     } else {
       setUsuarioLogado(data);
+      await Promise.all([carregarRondas(), carregarUsuarios(), carregarAgendamentos()]);
     }
   };
 
