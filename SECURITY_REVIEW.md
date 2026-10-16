@@ -26,7 +26,9 @@ O levantamento fornecido indicou privilégios amplos para `anon` e `authenticate
 
 O efeito de inicialização em `src/App.tsx` chama `carregarRondas()`, `carregarUsuarios()` e `carregarAgendamentos()` ao montar a aplicação, antes de verificar uma sessão autenticada. Essas funções fazem consultas diretas ao Supabase. Com os privilégios amplos e RLS desabilitado informados na auditoria, ocultar as telas pela interface não protege os dados: as chamadas podem ocorrer mesmo sem login.
 
-**Correção necessária:** remover consultas administrativas do carregamento público; carregar dados restritos somente após autenticação real e autorização no servidor. Não confiar em estado React ou em ocultação visual como controle de acesso.
+**Mitigação parcial nesta branch:** as consultas de rondas, usuários e agenda foram retiradas da inicialização pública e são chamadas após o login personalizado; a ação “Sair” também limpa essas listas do estado React. Isso reduz a exposição acidental na interface, mas **não é uma correção de segurança suficiente**: o login ainda é validado no navegador e as consultas continuam usando a chave pública diretamente. Uma pessoa pode contornar a interface e chamar a API enquanto as permissões do banco permitirem.
+
+**Correção definitiva necessária:** migrar para autenticação real e autorização no servidor; remover privilégios excessivos e habilitar RLS com políticas mínimas antes de considerar os dados protegidos. Não confiar em estado React ou em ocultação visual como controle de acesso.
 
 ### Alto — validação do chamado e envio feitos pelo navegador
 
