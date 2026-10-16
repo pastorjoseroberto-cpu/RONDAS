@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 
@@ -11,7 +11,7 @@ const opcoesOkNokNaoSeAplica = ["OK", "NOK", "NÃO SE APLICA"];
 const opcoesSimNaoNaoSeAplica = ["SIM", "NÃO", "NÃO SE APLICA"];
 const opcoesParceira = ["EASY TECH", "3AM", "OUTRA"];
 
-const formConfig = [
+const formConfig: { titulo: string; campos: { id: string; label: string; tipo?: string; opcoes?: string[]; longo?: boolean; foto?: boolean }[] }[] = [
   { 
     titulo: "1. Identificação Básica", 
     campos: [
@@ -141,7 +141,6 @@ export default function AppMaster() {
 
   const [geosDisponiveis, setGeosDisponiveis] = useState<string[]>([]);
   const [todasUnidadesDB, setTodasUnidadesDB] = useState<any[]>([]);
-  const [unidadesFiltradas, setUnidadesFiltradas] = useState<any[]>([]);
   const [form, setForm] = useState(camposIniciais);
   const [chamadoCarregado, setChamadoCarregado] = useState(false);
   const [chamadoBuscaInput, setChamadoBuscaInput] = useState('');
@@ -244,15 +243,6 @@ export default function AppMaster() {
       status: item.status || 'Dentro do prazo'
     })));
   }
-
-  useEffect(() => {
-    async function puxarUnidades() {
-      if (!form.geo) return;
-      const { data } = await supabase.from('unidades').select('*').ilike('Geo', form.geo);
-      if (data) setUnidadesFiltradas(data);
-    }
-    puxarUnidades();
-  }, [form.geo]);
 
   const abrirAtalhoDiretoField = () => {
     const urlAtual = window.location.origin + window.location.pathname + '?modo=field';
