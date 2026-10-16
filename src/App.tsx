@@ -605,7 +605,7 @@ export default function AppMaster() {
     // Defesa de interface: só enviar depois de uma busca de chamado bem-sucedida.
     // Isto não substitui validação no servidor, que ainda precisa ser implementada.
     const chamadoConfirmado = chamadoBuscaInput.trim().replace(/\s+/g, '').toUpperCase();
-    const chamadoDoFormulario = form.numero_chamado.trim().replace(/\\s+/g, '').toUpperCase();
+    const chamadoDoFormulario = form.numero_chamado.trim().replace(/\s+/g, '').toUpperCase();
     if (!chamadoCarregado || !chamadoDoFormulario || chamadoDoFormulario !== chamadoConfirmado) {
       alert('Busque e confirme um chamado válido na agenda antes de enviar a ronda.');
       return;
