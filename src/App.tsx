@@ -172,12 +172,7 @@ export default function AppMaster() {
     contato_ambev: ''
   });
 
-  const [listaAgendamentos, setListaAgendamentos] = useState<any[]>([
-    { id: 1, chamado: 'RITM20799282', data: '2026-10-06', hora: '11:23', unidade: 'CDD BELÉM', geo: 'NCO', tipo: 'CDD/FÁBRICA', solicitante: 'JACKSON ROCHA VIVEIROS', contato: '(11) 94117-3552', status: 'Concluída' },
-    { id: 2, chamado: 'RITH20799262', data: '2026-10-06', hora: '08:00', unidade: 'CDD BELÉM', geo: 'NORT', tipo: 'CDD/FÁBRICA', solicitante: 'JOSE FELIPE FREITAS BENICIO', contato: '(91) 98888-2222', status: 'Concluída' },
-    { id: 3, chamado: 'RITH20799376', data: '2026-10-06', hora: '15:00', unidade: 'CDR BELÉM', geo: 'NORT', tipo: 'CDL', solicitante: 'JOSE FELIPE FREITAS BENICIO', contato: '', status: 'Dentro do prazo' },
-    { id: 4, chamado: 'RITH20799378', data: '2026-10-06', hora: '10:00', unidade: 'CDR BELÉM', geo: 'NORT', tipo: 'CDD', solicitante: 'JOSE FELIPE FREITAS BENICIO', contato: '', status: 'Atrasada' },
-  ]);
+  const [listaAgendamentos, setListaAgendamentos] = useState<any[]>([]);
 
   useEffect(() => {
     const checarDispositivo = () => {
@@ -214,6 +209,7 @@ export default function AppMaster() {
       }
       carregarRondas();
       carregarUsuarios();
+      carregarAgendamentos();
     }
     init();
   }, []);
@@ -226,6 +222,27 @@ export default function AppMaster() {
   async function carregarUsuarios() {
     const { data } = await supabase.from('usuarios_sistema').select('*');
     if (data) setListaUsuarios(data);
+  }
+
+  async function carregarAgendamentos() {
+    const { data, error } = await supabase.from('agenda_os').select('*').order('data_agendamento', { ascending: true });
+    if (error) {
+      console.error('Erro ao carregar agenda:', error.message);
+      alert('Não foi possível carregar a agenda. Verifique a migração do banco e as permissões.');
+      return;
+    }
+    setListaAgendamentos((data || []).map((item: any) => ({
+      id: item.id_chamado,
+      chamado: item.id_chamado,
+      data: item.data_agendamento || '',
+      hora: item.horario_previsto || '',
+      unidade: item.unidade_site || '',
+      geo: item.geo || '',
+      tipo: item.tipo_unidade || '',
+      solicitante: item.nome_solicitante || '',
+      contato: item.contato_ambev || '',
+      status: item.status || 'Dentro do prazo'
+    })));
   }
 
   useEffect(() => {
@@ -267,29 +284,22 @@ export default function AppMaster() {
 
     setAlertaAtraso(null);
 
-    let agendamento = listaAgendamentos.find(a => 
-      a.chamado.trim().replace(/\s+/g, '').toUpperCase() === termo
-    );
-
-    if (!agendamento) {
-      try {
-        const { data } = await supabase.from('agendamentos').select('*').ilike('numero_chamado', `%${termo}%`).maybeSingle();
-        if (data) {
-          agendamento = {
-            chamado: data.numero_chamado,
-            unidade: data.unidade,
-            geo: data.geo,
-            solicitante: data.nome_solicitante,
-            data: data.data_agendamento,
-            hora: data.hora_agendamento || '10:00',
-            tipo: data.tipo_unidade,
-            status: data.status || 'Dentro do prazo'
-          };
-        }
-      } catch (err) {
-        console.log("Sem tabela remota:", err);
-      }
+    const { data: itemAgenda, error: erroAgenda } = await supabase.from('agenda_os').select('*').eq('id_chamado', termo).maybeSingle();
+    if (erroAgenda) {
+      console.error('Erro na consulta do chamado:', erroAgenda.message);
+      alert('Não foi possível consultar a agenda. Tente novamente ou contate o administrador.');
+      return;
     }
+    const agendamento = itemAgenda ? {
+      chamado: itemAgenda.id_chamado,
+      unidade: itemAgenda.unidade_site,
+      geo: itemAgenda.geo,
+      solicitante: itemAgenda.nome_solicitante,
+      data: itemAgenda.data_agendamento,
+      hora: itemAgenda.horario_previsto || '10:00',
+      tipo: itemAgenda.tipo_unidade,
+      status: itemAgenda.status || 'Dentro do prazo'
+    } : null;
 
     if (agendamento) {
       if (agendamento.status === 'Concluída') {
@@ -484,7 +494,7 @@ export default function AppMaster() {
   };
 
   const editarAgendamento = (agendamento: any) => {
-    setEditandoId(agendamento.id);
+    setEditandoId(String(agendamento.id));
     setNovoAgendamento({
       numero_chamado: agendamento.chamado.toUpperCase(),
       data_agendamento: agendamento.data,
@@ -503,45 +513,42 @@ export default function AppMaster() {
     setNovoAgendamento({ numero_chamado: '', data_agendamento: '', hora_agendamento: '', unidade: '', geo: '', tipo_unidade: 'CDD', nome_solicitante: '', contato_ambev: '' });
   };
 
-  const criarOuSalvarAgendamento = (e: any) => {
+  const criarOuSalvarAgendamento = async (e: any) => {
     e.preventDefault();
-    if (editandoId) {
-      setListaAgendamentos(listaAgendamentos.map(a => a.id === editandoId ? {
-        ...a,
-        chamado: novoAgendamento.numero_chamado.toUpperCase(),
-        data: novoAgendamento.data_agendamento,
-        hora: novoAgendamento.hora_agendamento || '10:00',
-        unidade: novoAgendamento.unidade.toUpperCase(),
-        geo: novoAgendamento.geo.toUpperCase(),
-        tipo: novoAgendamento.tipo_unidade.toUpperCase(),
-        solicitante: novoAgendamento.nome_solicitante.toUpperCase(),
-        contato: novoAgendamento.contato_ambev,
-      } : a));
-      alert('✅ Agendamento atualizado com sucesso!');
-      setEditandoId(null);
-    } else {
-      const novo = {
-        id: Date.now(),
-        chamado: novoAgendamento.numero_chamado.toUpperCase(),
-        data: novoAgendamento.data_agendamento,
-        hora: novoAgendamento.hora_agendamento || '10:00',
-        unidade: novoAgendamento.unidade.toUpperCase(),
-        geo: novoAgendamento.geo.toUpperCase(),
-        tipo: novoAgendamento.tipo_unidade.toUpperCase(),
-        solicitante: novoAgendamento.nome_solicitante.toUpperCase(),
-        contato: novoAgendamento.contato_ambev,
-        status: 'Dentro do prazo'
-      };
-      setListaAgendamentos([novo, ...listaAgendamentos]);
-      alert('✅ Chamado agendado com sucesso!');
+    const chamado = novoAgendamento.numero_chamado.trim().replace(/\s+/g, '').toUpperCase();
+    if (!chamado || !novoAgendamento.data_agendamento || !novoAgendamento.unidade || !novoAgendamento.nome_solicitante) {
+      alert('Preencha chamado, data, unidade e solicitante.');
+      return;
     }
-    setNovoAgendamento({ numero_chamado: '', data_agendamento: '', hora_agendamento: '', unidade: '', geo: '', tipo_unidade: 'CDD', nome_solicitante: '', contato_ambev: '' });
+    const registro = {
+      id_chamado: chamado,
+      data_agendamento: novoAgendamento.data_agendamento,
+      horario_previsto: novoAgendamento.hora_agendamento || null,
+      unidade_site: novoAgendamento.unidade.trim().toUpperCase(),
+      geo: novoAgendamento.geo.trim().toUpperCase(),
+      tipo_unidade: novoAgendamento.tipo_unidade.trim().toUpperCase(),
+      nome_solicitante: novoAgendamento.nome_solicitante.trim().toUpperCase(),
+      contato_ambev: novoAgendamento.contato_ambev.trim(),
+      status: 'Dentro do prazo'
+    };
+    const { error } = await supabase.from('agenda_os').upsert(registro, { onConflict: 'id_chamado' });
+    if (error) {
+      alert('Não foi possível salvar o agendamento: ' + error.message);
+      return;
+    }
+    alert(editandoId ? 'Agendamento atualizado no banco de dados.' : 'Chamado agendado e salvo no banco de dados.');
+    cancelarEdicao();
+    await carregarAgendamentos();
   };
 
-  const excluirAgendamento = (id: number) => {
-    if (window.confirm('Deseja excluir este agendamento?')) {
-      setListaAgendamentos(listaAgendamentos.filter(a => a.id !== id));
+  const excluirAgendamento = async (id: string) => {
+    if (!window.confirm('Deseja excluir este agendamento?')) return;
+    const { error } = await supabase.from('agenda_os').delete().eq('id_chamado', id);
+    if (error) {
+      alert('Erro ao excluir agendamento: ' + error.message);
+      return;
     }
+    await carregarAgendamentos();
   };
 
   const iniciarExclusaoRonda = (ronda: any) => {
@@ -640,7 +647,7 @@ export default function AppMaster() {
 
   const agendamentosFiltrados = listaAgendamentos.filter(a => {
     const q = buscaAgenda.toLowerCase();
-    return (a.chamado.toLowerCase().includes(q) || a.unidade.toLowerCase().includes(q) || a.solicitante.toLowerCase().includes(q));
+    return (String(a.chamado || '').toLowerCase().includes(q) || String(a.unidade || '').toLowerCase().includes(q) || String(a.solicitante || '').toLowerCase().includes(q));
   });
 
   const todosCampos = formConfig.flatMap(s => s.campos);
