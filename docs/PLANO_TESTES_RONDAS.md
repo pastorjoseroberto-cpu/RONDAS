@@ -54,3 +54,28 @@ Não aprovar para produção enquanto houver qualquer falha nos testes de busca,
 - Não executar migrações nem comandos SQL de alteração no banco de produção durante estes testes.
 - Não alterar a branch `main), não fazer merge e não publicar produção sem autorização explícita.
 - Usar dados fictícios ou cópia de teste; não usar chamados reais para testes destrutivos.
+
+## 6. Critérios para migração de autenticação e RLS (pendentes)
+
+Estes testes devem ser executados em um projeto Supabase de teste, com dados fictícios. Não executar contra produção durante esta fase.
+
+- [ ] Login administrativo por Supabase Auth funciona com credencial nova e sessão válida.
+- [ ] Logout invalida a sessão e os dados administrativos deixam de ficar disponíveis na interface.
+- [ ] Uma conta autenticada sem papel administrativo não consegue consultar nem alterar rondas, usuários ou agenda administrativa.
+- [ ] Um administrador autorizado consegue consultar e gerir a agenda conforme suas permissões.
+- [ ] O visitante/técnico consegue consultar apenas os campos mínimos do chamado e unidades necessários para preencher Nova Ronda.
+- [ ] O visitante/técnico não consegue listar histórico completo de rondas, consultar usuários, criar usuários, redefinir senhas, editar agenda nem excluir registros.
+- [ ] Chamado inexistente, já concluído ou não elegível é rejeitado no servidor, mesmo chamando diretamente a API.
+- [ ] Uma submissão válida grava a ronda e conclui o chamado na mesma transação.
+- [ ] Uma falha forçada durante a operação transacional não deixa ronda gravada com agenda aberta, nem agenda concluída sem ronda.
+- [ ] Repetir a mesma requisição não cria rondas duplicadas; comportamento de repetição está documentado.
+- [ ] Verificar grants, policies, views e funções para garantir que `anon` e `authenticated` não mantêm privilégios amplos desnecessários.
+- [ ] Confirmar que nenhuma chave `service_role` está presente no código cliente, no bundle ou em variáveis `VITE_*`.
+
+## 7. Critérios antes de qualquer publicação
+
+- [ ] Backup restaurável verificado e plano de reversão revisado.
+- [ ] `npm ci`, `npm run typecheck` e `npm run build` concluídos com sucesso na revisão atual.
+- [ ] Testes funcionais e negativos registrados com resultado real, não apenas check de build/deploy.
+- [ ] Diff final e migrations revisados por pessoa responsável.
+- [ ] Aprovação explícita obtida antes de qualquer alteração em produção.
