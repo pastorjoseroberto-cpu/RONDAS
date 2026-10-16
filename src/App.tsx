@@ -601,6 +601,16 @@ export default function AppMaster() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+
+    // Defesa de interface: só enviar depois de uma busca de chamado bem-sucedida.
+    // Isto não substitui validação no servidor, que ainda precisa ser implementada.
+    const chamadoConfirmado = chamadoBuscaInput.trim().replace(/\\s+/g, '').toUpperCase();
+    const chamadoDoFormulario = form.numero_chamado.trim().replace(/\\s+/g, '').toUpperCase();
+    if (!chamadoCarregado || !chamadoDoFormulario || chamadoDoFormulario !== chamadoConfirmado) {
+      alert('Busque e confirme um chamado válido na agenda antes de enviar a ronda.');
+      return;
+    }
+
     const agoraFim = new Date();
     const horaFimAtual = agoraFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const parceiraFinal = form.parceira === 'OUTRA' ? form.outra_parceira : form.parceira;
@@ -628,9 +638,9 @@ export default function AppMaster() {
       setChamadoCarregado(false);
       setChamadoBuscaInput('');
       setAlertaAtraso(null);
-      carregarRondas(); 
-      setVisaoGeral('gerente'); 
-      setSubAbaGestor('relatorios'); 
+      carregarRondas();
+      // Permanecer no fluxo público de técnico; não redirecionar para o painel gestor.
+      setVisaoGeral('tecnico'); 
     }
   };
 
