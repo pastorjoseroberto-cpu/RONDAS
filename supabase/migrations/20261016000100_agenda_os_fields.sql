@@ -1,7 +1,6 @@
--- RONDAS: persistência da agenda de chamados
--- Revisão segura: este arquivo NÃO é executado automaticamente.
--- Execute no Supabase somente após revisar as colunas e fazer backup.
--- As operações abaixo apenas adicionam colunas; não apagam nem alteram registros existentes.
+-- RONDAS: campos para persistência da agenda
+-- Arquivo de migração para revisão; não é executado automaticamente.
+-- Não apaga registros nem altera permissões/RLS.
 
 alter table public.agenda_os
   add column if not exists data_agendamento date,
@@ -10,6 +9,7 @@ alter table public.agenda_os
   add column if not exists nome_solicitante text,
   add column if not exists contato_ambev text;
 
--- Confirme que id_chamado possui chave primária ou restrição UNIQUE antes de usar
--- upsert(..., { onConflict: 'id_chamado' }) no aplicativo.
--- Esta migração deliberadamente NÃO altera RLS, privilégios, usuários ou senhas.
+-- Necessário para upsert por id_chamado. Se houver chamados duplicados,
+-- a criação do índice falhará sem apagar dados; revise as duplicidades antes de prosseguir.
+create unique index if not exists agenda_os_id_chamado_uidx
+  on public.agenda_os (id_chamado);
