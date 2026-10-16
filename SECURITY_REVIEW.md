@@ -22,9 +22,9 @@ O levantamento fornecido indicou privilégios amplos para `anon` e `authenticate
 **Correção necessária:** desenhar políticas RLS mínimas por tabela e por função. Como o login atual é personalizado e não estabelece sessão Supabase Auth, não basta criar políticas que dependam de `auth.uid()` e presumir que o login existente será reconhecido. Primeiro migrar/definir a identidade e os papéis; depois testar cada operação com sessão anônima, técnico e administrador.
 
 
-### Crítico — dados administrativos consultados antes do login
+### Crítico — dados administrativos ainda dependem de autorização no banco
 
-O efeito de inicialização em `src/App.tsx` chama `carregarRondas()`, `carregarUsuarios()` e `carregarAgendamentos()` ao montar a aplicação, antes de verificar uma sessão autenticada. Essas funções fazem consultas diretas ao Supabase. Com os privilégios amplos e RLS desabilitado informados na auditoria, ocultar as telas pela interface não protege os dados: as chamadas podem ocorrer mesmo sem login.
+A inspeção atual indica que as consultas de rondas, usuários e agenda foram retiradas da inicialização pública e passaram a ser chamadas após o login personalizado. Isso reduz consultas acidentais antes do login, mas não constitui autenticação confiável: a validação continua no navegador, e as consultas usam a API pública do Supabase. Com os privilégios amplos e RLS desabilitado informados na auditoria, chamadas diretas à API ainda podem contornar a interface.
 
 **Mitigação parcial nesta branch:** as consultas de rondas, usuários e agenda foram retiradas da inicialização pública e são chamadas após o login personalizado; a ação “Sair” também limpa essas listas do estado React. Isso reduz a exposição acidental na interface, mas **não é uma correção de segurança suficiente**: o login ainda é validado no navegador e as consultas continuam usando a chave pública diretamente. Uma pessoa pode contornar a interface e chamar a API enquanto as permissões do banco permitirem.
 
@@ -37,6 +37,12 @@ A consulta de chamado e a inserção de ronda são feitas diretamente pelo clien
 **Mitigação parcial nesta branch:** o envio pelo formulário agora exige que a busca tenha marcado um chamado como carregado e compara o número pesquisado com o número do formulário após normalização. Após registrar a ronda, a interface permanece na visão de técnico, sem redirecionar automaticamente ao painel do gestor. Isso preserva o fluxo público pretendido, mas é somente uma barreira de interface, não uma garantia de segurança.
 
 **Correção necessária:** validar no lado confiável que o chamado existe, está elegível e não foi concluído; validar os campos aceitos; e aplicar autorização/rate limiting no endpoint de submissão. O formulário público pode continuar disponível, mas com permissões estritamente limitadas.
+
+### Alto — envio da ronda e conclusão da agenda não são atômicos
+
+O fluxo atual insere a ronda em `rondas` e, em uma requisição separada, atualiza `agenda_os.status` para `Concluída`. Se a primeira operação funcionar e a segunda falhar, os dados ficam inconsistentes. A validação e a atualização também podem ser contornadas por chamadas diretas enquanto forem executadas pelo cliente.
+
+**Correção necessária:** implementar uma operação confiável no servidor (por exemplo, função RPC transacional com privilégios cuidadosamente definidos ou endpoint backend) que valide o chamado, impeça conclusão indevida/duplicidade conforme a regra de negócio e registre a ronda e conclua o agendamento na mesma transação. Definir também como tratar tentativas repetidas e chamados já concluídos.
 
 ### Alto — senha em tabela personalizada
 
