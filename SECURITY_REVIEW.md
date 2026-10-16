@@ -5,7 +5,7 @@ Branch: `fix/agenda-persistence-security-review`
 
 ## Escopo e limites
 
-Esta revisão foi feita por inspeção do código e das informações de esquema/permissões fornecidas pelo responsável. Não houve alteração no banco Supabase, execução de migração, deploy, merge ou alteração da branch `main`. Nenhum teste de compilação foi executado neste ambiente.
+Esta revisão foi feita por inspeção do código e das informações de esquema/permissões fornecidas pelo responsável. Não houve alteração no banco Supabase, execução de migração, deploy, merge ou alteração da branch `main`. A validação automatizada do GitHub Actions passou em 2026-10-16 no commit `f00c2dba1ddba365abddc05475fc441364e2ee2e`: instalação de dependências, build de produção e verificação de TypeScript. Isso não substitui testes funcionais, revisão de segurança nem teste de permissões.
 
 ## Achados confirmados
 
@@ -53,7 +53,8 @@ O código nesta branch consulta e grava campos novos de `agenda_os`. A migraçã
 - Cadastro/edição usa `upsert`; exclusão remove por `id_chamado`.
 - A submissão da ronda tenta marcar o chamado como `Concluída`.
 - Esses fluxos ainda dependem da migração e das permissões corretas; a alteração **não deve ser considerada segura para produção** enquanto os achados acima estiverem pendentes.
-- Nenhuma confirmação de compilação ou teste funcional está disponível.
+- Build e verificação de TypeScript passaram no GitHub Actions no commit `f00c2dba1ddba365abddc05475fc441364e2ee2e`.
+- Testes funcionais e de segurança ainda não foram executados.
 
 ## Sequência segura recomendada
 
