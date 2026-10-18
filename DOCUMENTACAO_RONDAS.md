@@ -3,7 +3,7 @@
 **Projeto:** RONDAS  
 **Repositório:** https://github.com/pastorjoseroberto-cpu/RONDAS  
 **Branch de referência deste documento:** `main`  
-**Arquivo principal do front-end:** `src/App.tsx)  
+**Arquivo principal do front-end:** `src/App.tsx`  
 **Última atualização:** 18/10/2026
 
 > **Nota sobre o estado documentado:** este documento registra o comportamento implementado e os testes relatados pelo responsável pelo projeto durante a conversa. Antes de publicar uma versão, confirme que as alterações locais em `src/App.tsx` e as mudanças no banco estão sincronizadas com o repositório e com o ambiente Supabase de destino. Não considerar recursos listados como pendentes já implementados.
